@@ -1,6 +1,6 @@
 #
 # PopPwd.pm
-# Last Modification: Fri Dec 27 10:49:06 WET 2002
+# Last Modification: Fri Oct 10 18:31:17 WEST 2003
 #
 # Copyright (c) 2002 Henrique Dias <hdias@aesbuc.pt>. All rights reserved.
 # This module is free software; you can redistribute it and/or modify
@@ -12,7 +12,7 @@ use strict;
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter AutoLoader);
-$VERSION = 0.02;
+$VERSION = 0.03;
 @ISA = qw(Exporter);
 require 5;
 use IO::Socket;
@@ -54,10 +54,10 @@ sub count_chars {
 sub checkpwd {
 	my $self = shift;
 
-	return(551) unless($self->{USER});
-	return(552) unless($self->{OLDPWD});
-	return(553) unless($self->{NEWPWD});
-	return(554) unless($self->{CONFPWD});
+	$self->{USER} or return(551);
+	$self->{OLDPWD} or return(551);
+	$self->{NEWPWD} or return(553);
+	$self->{CONFPWD} or return(554);
 	return(555) if(length($self->{NEWPWD}) < $self->{NMIN});
 	return(556) if(length($self->{NEWPWD}) > $self->{NMAX});
 	return(557) if($self->{NEWPWD} ne $self->{CONFPWD});
@@ -74,7 +74,7 @@ sub checkpwd {
 	if($self->{CRACKLIB}) {
 		my $reason = fascist_check($self->{NEWPWD}, $self->{CRACKLIB});
 		chomp($reason);
-		return(563) unless($reason eq "ok");
+		($reason eq "ok") or return(563);
 	}
 	return();
 }
@@ -90,15 +90,16 @@ sub change {
 			Timeout  => $self->{TIMEOUT}		
 	) or return(join("", "Couldn't connect to ", $self->{HOST}, ":", $self->{PORT}, " $@\n"));
 
+	my $EOL = "\015\012";
 	my $error = "";
 	TEST: {
-		print $socket join(" ", "user", $self->{USER}), "\r\n";
+		print $socket join(" ", "user", $self->{USER}), $EOL;
 		last TEST if($error = &get_answer($socket));
-		print $socket join(" ", "pass", $self->{OLDPWD}), "\r\n";
+		print $socket join(" ", "pass", $self->{OLDPWD}), $EOL;
 		last TEST if($error = &get_answer($socket));
-		print $socket join(" ", "newpass", $self->{NEWPWD}), "\r\n";
+		print $socket join(" ", "newpass", $self->{NEWPWD}), $EOL;
 		last TEST if($error = &get_answer($socket));
-		print $socket "quit\r\n";
+		print $socket "quit$EOL";
 		last TEST if($error = &get_answer($socket));
 	}
 	close($socket);

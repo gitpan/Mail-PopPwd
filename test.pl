@@ -53,8 +53,8 @@ my $t = 2;
 my $poppwd = Mail::PopPwd->new(
 	HOST   => $popserver,
 	USER   => $user,
-	OLDPWD => $newpwd, 
-	NEWPWD => $oldpwd);
+	OLDPWD => $oldpwd, 
+	NEWPWD => $newpwd);
 
 if($check eq "s") {
 	$error = $poppwd->checkpwd();
