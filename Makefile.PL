@@ -12,14 +12,12 @@ if ($] >= 5.00503) {
 
 WriteMakefile(
     'NAME'	=> "Mail::PopPwd",
-    'DISTNAME'	=> "PopPwd",
+    'DISTNAME'	=> "Mail-PopPwd",
     'VERSION_FROM' => "PopPwd.pm", # finds $VERSION
     'PREREQ_PM'	=> {
 		Crypt::Cracklib => 0.01, # Module::Name => 1.1
 		},
-     'dist' => {
-		COMPRESS => "gzip -9f",
-		SUFFIX => "gz",
-		},
-     @ppd
+    'INC'          => '',     # e.g., '-I/usr/include/other'
+    'dist'         => { 'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz', },
+    @ppd
 );

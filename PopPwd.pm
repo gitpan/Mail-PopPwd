@@ -1,19 +1,18 @@
-#---------------------------------------------------------------------
-# PopPwd.pm
-# Last Modification: 2001/07/28 (hdias@esb.ucp.pt)
 #
-# Copyright (c) 2001 Henrique Dias. All rights reserved.
+# PopPwd.pm
+# Last Modification: Fri Dec 27 10:49:06 WET 2002
+#
+# Copyright (c) 2002 Henrique Dias <hdias@aesbuc.pt>. All rights reserved.
 # This module is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
-#---------------------------------------------------------------------
 
 package Mail::PopPwd;
 use strict;
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter AutoLoader);
-$VERSION = 0.01;
+$VERSION = 0.02;
 @ISA = qw(Exporter);
 require 5;
 use IO::Socket;
@@ -62,18 +61,16 @@ sub checkpwd {
 	return(555) if(length($self->{NEWPWD}) < $self->{NMIN});
 	return(556) if(length($self->{NEWPWD}) > $self->{NMAX});
 	return(557) if($self->{NEWPWD} ne $self->{CONFPWD});
-	if($self->{STOREDPWD}) {
-		return(558) unless($self->{OLDPWD} eq $self->{STOREDPWD});
-	}
+	return(558) if($self->{STOREDPWD} && ($self->{OLDPWD} ne $self->{STOREDPWD}));
 	return(559) if(&count_chars($self->{NEWPWD}) < $self->{NDIFCHARS});
 
 	my $pwdrev = reverse($self->{NEWPWD});
 	return(560) if(&check_dif($self->{NEWPWD},$self->{OLDPWD},$self->{NSEQWORD}) || &check_dif($pwdrev,$self->{OLDPWD},$self->{NSEQWORD}));
 	return(561) if(&check_dif($self->{NEWPWD},$self->{USER},$self->{NSEQWORD}) || &check_dif($pwdrev,$self->{USER},$self->{NSEQWORD}));
+	return(562) if($self->{NAME} &&
+			(&check_dif($self->{NEWPWD}, $self->{NAME},$self->{NSEQWORD}) ||
+				&check_dif($pwdrev, $self->{NAME}, $self->{NSEQWORD})));
 
-	if($self->{NAME}) {
-		return(562) if(&check_dif($self->{NEWPWD},$self->{NAME},$self->{NSEQWORD}) || &check_dif($pwdrev,$self->{NAME},$self->{NSEQWORD}));
-	}
 	if($self->{CRACKLIB}) {
 		my $reason = fascist_check($self->{NEWPWD}, $self->{CRACKLIB});
 		chomp($reason);
@@ -91,15 +88,15 @@ sub change {
 			Proto    => "tcp",
 			Type     => SOCK_STREAM,
 			Timeout  => $self->{TIMEOUT}		
-	) or return("Couldn't connect to " . $self->{HOST} . ":" . $self->{PORT} . " $@\n");
+	) or return(join("", "Couldn't connect to ", $self->{HOST}, ":", $self->{PORT}, " $@\n"));
 
 	my $error = "";
 	TEST: {
-		print $socket "user " . $self->{USER} . "\r\n";
+		print $socket join(" ", "user", $self->{USER}), "\r\n";
 		last TEST if($error = &get_answer($socket));
-		print $socket "pass " . $self->{OLDPWD} . "\r\n";
+		print $socket join(" ", "pass", $self->{OLDPWD}), "\r\n";
 		last TEST if($error = &get_answer($socket));
-		print $socket "newpass" . $self->{NEWPWD} . "\r\n";
+		print $socket join(" ", "newpass", $self->{NEWPWD}), "\r\n";
 		last TEST if($error = &get_answer($socket));
 		print $socket "quit\r\n";
 		last TEST if($error = &get_answer($socket));
@@ -303,7 +300,7 @@ BAD PASSWORD: it is based on a dictionary word or to easy
 
 =head1 AUTHOR
 
-Henrique Dias <hdias@esb.ucp.pt>
+Henrique Dias <hdias@aesbuc.pt>
 
 =head1 CREDITS
 

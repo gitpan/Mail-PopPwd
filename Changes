@@ -1,4 +1,9 @@
 Revision history for Perl extension Mail::PopPwd.
 
+0.02 Fri Dec 27 12:42:40 WET 2002
+        - code cleanup
+	- a bug in "newpass" command have been fixed.
+	  Thanks to Simon Tneoh Chee-Boon <simon.tneoh@mybiz.net>
+
 0.01 Thu Jul 28 14:10:05 2001
 	- original version; created by h2xs 1.19
